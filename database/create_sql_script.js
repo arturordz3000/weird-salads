@@ -11,7 +11,7 @@ const directoryPath = path.join(__dirname, 'migrations');
 const createScripts = [];
 
 fs.readdirSync(directoryPath).forEach(file => {
-  if (file.endsWith('.js')) {
+  if (file.indexOf('create_table') != -1 && file.endsWith('.js')) {
     const moduleName = path.basename(file, '.js');
     const fullPath = path.join(directoryPath, file);
     createScripts.push(require(fullPath).up);

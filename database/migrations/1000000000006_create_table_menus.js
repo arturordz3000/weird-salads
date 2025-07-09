@@ -10,7 +10,6 @@ module.exports = {
         CONSTRAINT fk_menu_location
             FOREIGN KEY (location_id)
             REFERENCES locations(location_id)
-            ON DELETE CASCADE
     )`,
     "down": "DROP TABLE IF EXISTS menus"
 }
