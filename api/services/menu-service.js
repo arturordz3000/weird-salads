@@ -36,13 +36,6 @@ const sellTransaction = async (connection, menuItemsIds) => {
         menuItems.push(menuItem);
 
         // TODO: implement
-        const inventoryValid = await inventoryService.validateInventoryTransaction(connection, menuItem);
-        
-        if (!inventoryValid) {
-            throw new InventoryValidationError();
-        }
-
-        // TODO: implement
         const recipeIngredients = await recipeService.getRecipeIngredientsTransaction(connection, menuItem.recipe_id);
         
         // TODO: implement

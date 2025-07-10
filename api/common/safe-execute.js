@@ -9,9 +9,8 @@ const safeExecute = async (req, res, fn) => {
         if (error instanceof UserError) {
             res.status(error.code).send(error.message);
         } else {
-            res.status(error).send('Server error has occured. Please try again.');
+            res.status(500).send('Server error has occured. Please try again.');
         }
-
     }
 }
 
