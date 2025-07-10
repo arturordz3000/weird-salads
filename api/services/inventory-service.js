@@ -20,7 +20,10 @@ const removeFromInventoryTransaction = async (connection, inventoryUpdates) => {
     }, {});
     const placeholders = ingredientIds.map(_ => '?').join(',');
 
-    const [inventory] = await connection.query(`SELECT * FROM inventory WHERE ingredient_id IN (${placeholders})`, ingredientIds);
+    const [inventory] = await connection.query(`
+        SELECT * FROM inventory WHERE ingredient_id IN (${placeholders}) AND location_id = ${constants.locationId}`,
+        ingredientIds
+    );
 
     validateInventory(inventory, updatesByIngredientId);
 
