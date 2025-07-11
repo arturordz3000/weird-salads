@@ -21,12 +21,21 @@ router.put('/', async (req, res) => {
 });
 
 router.post('/remove', async (req, res) => {
-    await safeExecute(req, res, async () => {
-      const inventoryUpdates = req.body['inventoryUpdates'];
-      await inventoryService.removeFromInventory(inventoryUpdates);
-  
-      res.sendStatus(200);
-    });
+  await safeExecute(req, res, async () => {
+    const inventoryUpdates = req.body['inventoryUpdates'];
+    await inventoryService.removeFromInventory(inventoryUpdates);
+
+    res.sendStatus(200);
   });
+});
+
+router.post('/add', async (req, res) => {
+  await safeExecute(req, res, async () => {
+    const inventoryUpdates = req.body['inventoryUpdates'];
+    await inventoryService.addToInventory(inventoryUpdates);
+
+    res.sendStatus(200);
+  });
+});
 
 module.exports = router;

@@ -13,10 +13,10 @@ const validateInventory = (inventory, updatesByIngredientId) => {
     }
 }
 
-const removeFromInventoryTransaction = async (connection, inventoryUpdates) => {
+const removeFromOrAddToInventoryTransaction = async (connection, inventoryUpdates, method = 'remove') => {
     const ingredientIds = inventoryUpdates.map(update => update.ingredient_id);
     const updatesByIngredientId = inventoryUpdates.reduce((acc, update) => {
-        acc[update.ingredient_id] = update.quantity;
+        acc[update.ingredient_id] = parseFloat(update.quantity);
         return acc;
     }, {});
     const placeholders = ingredientIds.map(_ => '?').join(',');
@@ -26,12 +26,16 @@ const removeFromInventoryTransaction = async (connection, inventoryUpdates) => {
         ingredientIds
     );
 
-    validateInventory(inventory, updatesByIngredientId);
+    if (method === 'remove') {
+        validateInventory(inventory, updatesByIngredientId);
+    }
+
+    const multiplier = method === 'remove' ? -1 : 1;
 
     const newUpdates = inventory.map(ingredient => (
         { 
             ingredient_id: ingredient.ingredient_id, 
-            quantity: ingredient.quantity - updatesByIngredientId[ingredient.ingredient_id],
+            quantity: parseFloat(ingredient.quantity) + (updatesByIngredientId[ingredient.ingredient_id] * multiplier),
         }
     ));
 
@@ -40,7 +44,13 @@ const removeFromInventoryTransaction = async (connection, inventoryUpdates) => {
 
 const removeFromInventory = async (inventoryUpdates) => {
     await safeTransaction(connectionPool, async (connection) => {
-        await removeFromInventoryTransaction(connection, inventoryUpdates);
+        await removeFromOrAddToInventoryTransaction(connection, inventoryUpdates, 'remove');
+    });
+}
+
+const addToInventory = async (inventoryUpdates) => {
+    await safeTransaction(connectionPool, async (connection) => {
+        await removeFromOrAddToInventoryTransaction(connection, inventoryUpdates, 1, 'add');
     });
 }
 
@@ -64,7 +74,8 @@ const updateInventory = async (inventoryUpdates) => {
 }
 
 module.exports = {
-    removeFromInventoryTransaction,
+    removeFromInventoryTransaction: removeFromOrAddToInventoryTransaction,
     removeFromInventory,
-    updateInventory
+    updateInventory,
+    addToInventory
 }
