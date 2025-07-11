@@ -5,6 +5,7 @@ const UserError = require('../errors/user-error');
 const inventoryService = require('../services/inventory-service');
 const recipeService = require('../services/recipe-service');
 const salesService = require('../services/sales-service');
+const safeTransaction = require('../common/safe-transaction');
 
 const { connectionPool } = constants;
 
@@ -47,16 +48,9 @@ const sellTransaction = async (connection, menuItemsIds) => {
 }
 
 const sell = async (menuItemsIds) => {
-    const connection = await connectionPool.getConnection();
-    try {
-        await connection.beginTransaction();
+    await safeTransaction(connectionPool, async (connection) => {
         await sellTransaction(connection, menuItemsIds);
-        await connection.commit();
-    } catch (error) {
-        connection.rollback();
-        console.error('Transaction rolled back because of error: ' + error.message);
-        throw error;
-    }
+    });
 }
 
 module.exports = {

@@ -1,5 +1,6 @@
 const constants = require('../constants');
 const InventoryValidationError = require('../errors/inventory-validation-error');
+const safeTransaction = require('../common/safe-transaction');
 
 const { connectionPool } = constants;
 
@@ -38,16 +39,9 @@ const removeFromInventoryTransaction = async (connection, inventoryUpdates) => {
 }
 
 const removeFromInventory = async (inventoryUpdates) => {
-    const connection = await connectionPool.getConnection();
-    try {
-        await connection.beginTransaction();
+    await safeTransaction(connectionPool, async (connection) => {
         await removeFromInventoryTransaction(connection, inventoryUpdates);
-        await connection.commit();
-    } catch (error) {
-        connection.rollback();
-        console.error('Transaction rolled back because of error: ' + error.message);
-        throw error;
-    }
+    });
 }
 
 const updateInventoryTransaction = async (connection, inventoryUpdates) => {
@@ -64,16 +58,9 @@ const updateInventoryTransaction = async (connection, inventoryUpdates) => {
 }
 
 const updateInventory = async (inventoryUpdates) => {
-    const connection = await connectionPool.getConnection();
-    try {
-        await connection.beginTransaction();
+    await safeTransaction(connectionPool, async (connection) => {
         await updateInventoryTransaction(connection, inventoryUpdates);
-        await connection.commit();
-    } catch (error) {
-        connection.rollback();
-        console.error('Transaction rolled back because of error: ' + error.message);
-        throw error;
-    }
+    });
 }
 
 module.exports = {
