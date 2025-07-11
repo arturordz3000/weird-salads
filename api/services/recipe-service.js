@@ -3,18 +3,20 @@ const constants = require('../constants');
 const { connectionPool } = constants;
 
 const getRecipeIngredientsTransaction = async (connection, recipeId) => {
-    const result = [];
-    const ingredientsCount = Math.floor(Math.random() * 9) + 1;
+    const [rows] = await connection.query(`
+        SELECT R.ingredient_id, I.name, R.quantity FROM recipes as R
+        INNER JOIN ingredients as I ON R.ingredient_id = I.ingredient_id
+        WHERE R.recipe_id = ?
+    `, [recipeId]);
 
-    for (let i = 0; i < ingredientsCount; i++) {
-        result.push({ ingredient_id: i, quantity: Math.random() * 10 });
-    }
+    return rows;
+}
 
-    console.log('Ingredients', result);
-
-    return result;
+const getRecipeIngredients = async (recipeId) => {
+    return await getRecipeIngredientsTransaction(await connectionPool.getConnection(), recipeId);
 }
 
 module.exports = {
-    getRecipeIngredientsTransaction
+    getRecipeIngredientsTransaction,
+    getRecipeIngredients
 }
