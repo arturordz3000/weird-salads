@@ -10,11 +10,20 @@ router.get('/:deliveryId', async (req, res) => {
   });
 });
 
+// For test purposes, not intended to use in the application
 router.post('/receive/:deliveryId', async (req, res) => {
     await safeExecute(req, res, async () => {
       await deliveryService.receiveDelivery(req.params.deliveryId);
       res.sendStatus(200);
     });
-  });
+});
+
+// For test purposes, not intended to use in the application
+router.post('/create/menu/:menuId', async (req, res) => {
+    await safeExecute(req, res, async () => {
+        await deliveryService.createDeliveryForMenuItem(req.params.menuId);
+        res.sendStatus(200);
+    });
+});
 
 module.exports = router;

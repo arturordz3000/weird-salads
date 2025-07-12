@@ -14,6 +14,16 @@ const getDelivery = async (deliveryId) => {
     return rows;
 }
 
+const createDeliveryForMenuItem = async (menuItemId) => {
+    // Let's match the delivery id to the menu item id just for simplicity
+    await connectionPool.query(`
+        insert into delivery (delivery_id, ingredient_id, quantity) 
+            select ? as delivery_id, I.ingredient_id, 100 as quantity 
+            from menus M inner join recipes R on R.recipe_id = M.recipe_id 
+            inner join ingredients I on I.ingredient_id = R.ingredient_id where M.menu_id = ?
+    `, [menuItemId, menuItemId]);
+}
+
 const receiveDelivery = async (deliveryId) => {
     const delivery = await getDelivery(deliveryId);
 
@@ -24,5 +34,6 @@ const receiveDelivery = async (deliveryId) => {
 
 module.exports = {
     getDelivery,
-    receiveDelivery
+    receiveDelivery,
+    createDeliveryForMenuItem
 }

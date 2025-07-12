@@ -1,6 +1,7 @@
 const constants = require('../constants');
 const InventoryValidationError = require('../errors/inventory-validation-error');
 const safeTransaction = require('../common/safe-transaction');
+const UserError = require('../errors/user-error');
 
 const { connectionPool } = constants;
 
@@ -28,11 +29,16 @@ const getNewInventory = (inventory, updatesByIngredientId) => {
 }
 
 const removeFromOrAddToInventoryTransaction = async (connection, inventoryUpdates, method = 'remove') => {
+    if (inventoryUpdates.length === 0) {
+        throw new UserError('No inventory updates passed');
+    }
+
     const ingredientIds = inventoryUpdates.map(update => update.ingredient_id);
     const updatesByIngredientId = inventoryUpdates.reduce((acc, update) => {
         acc[update.ingredient_id] = parseFloat(update.quantity);
         return acc;
     }, {});
+
     const placeholders = ingredientIds.map(_ => '?').join(',');
 
     let [inventory] = await connection.query(`

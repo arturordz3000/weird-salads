@@ -10,6 +10,7 @@ var inventory = require('./routes/inventory');
 var recipes = require('./routes/recipes');
 var sales = require('./routes/sales');
 var delivery = require('./routes/delivery');
+var auditLog = require('./routes/audit-log');
 
 var app = express();
 
@@ -24,5 +25,6 @@ app.use('/api/v1/inventory', inventory);
 app.use('/api/v1/recipes', recipes);
 app.use('/api/v1/sales', sales);
 app.use('/api/v1/delivery', delivery);
+app.use('/api/v1/audit_log', auditLog);
 
 module.exports = app;
