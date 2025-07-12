@@ -27,7 +27,20 @@ const addSale = async (menuItemsIds) => {
     });
 }
 
+const getLastNDaysSalesTotal = async (days) => {
+    const [rows] = await connectionPool.query(`
+        SELECT 
+        COUNT(*) AS total_sales,
+        SUM(total) AS total_revenue
+        FROM sales
+        WHERE sale_date >= CURDATE() - INTERVAL ? DAY
+    `, [days]);
+
+    return rows[0];
+}
+
 module.exports = {
     addSaleTransaction,
-    addSale
+    addSale,
+    getLastNDaysSalesTotal
 }

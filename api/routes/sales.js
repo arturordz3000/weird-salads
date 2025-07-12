@@ -11,4 +11,11 @@ router.post('/', async (req, res) => {
   });
 });
 
+router.get('/total/days/:days', async (req, res) => {
+    await safeExecute(req, res, async () => {
+        const result = await salesService.getLastNDaysSalesTotal(req.params.days);
+        res.send(result);
+    });
+});
+
 module.exports = router;
