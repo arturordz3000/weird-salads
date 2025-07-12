@@ -4,13 +4,27 @@ const safeTransaction = require('../common/safe-transaction');
 
 const { connectionPool } = constants;
 
-const validateInventory = (inventory, updatesByIngredientId) => {
+const validateEnoughInventory = (inventory, updatesByIngredientId) => {
+    // Validates quantities
     for (const ingredient of inventory) {
         const { ingredient_id, quantity } = ingredient;
         if (quantity - updatesByIngredientId[ingredient_id] < 0) {
             throw new InventoryValidationError();
         }
     }
+}
+
+const getNewInventory = (inventory, updatesByIngredientId) => {
+    const inventoryAsSet = new Set(inventory.map(ingredient => ingredient.ingredient_id));
+
+    const newInventory = Object.keys(updatesByIngredientId).map(ingredientId => {
+        if (!inventoryAsSet.has(parseInt(ingredientId))) {
+            return { ingredient_id: ingredientId, quantity: 0 };
+        }
+        return undefined;
+    }).filter(item => item !== undefined);
+
+    return newInventory;
 }
 
 const removeFromOrAddToInventoryTransaction = async (connection, inventoryUpdates, method = 'remove') => {
@@ -21,13 +35,19 @@ const removeFromOrAddToInventoryTransaction = async (connection, inventoryUpdate
     }, {});
     const placeholders = ingredientIds.map(_ => '?').join(',');
 
-    const [inventory] = await connection.query(`
+    let [inventory] = await connection.query(`
         SELECT * FROM inventory WHERE ingredient_id IN (${placeholders}) AND location_id = ${constants.locationId}`,
         ingredientIds
     );
 
+    // If an update contains an ingredient that is not in inventory, we have
+    // to pretend that it exists with quantity = 0 to avoid errors
+    inventory = [...inventory, ...getNewInventory(inventory, updatesByIngredientId)];
+
+    //console.log(inventory, updatesByIngredientId);
+
     if (method === 'remove') {
-        validateInventory(inventory, updatesByIngredientId);
+        validateEnoughInventory(inventory, updatesByIngredientId);
     }
 
     const multiplier = method === 'remove' ? -1 : 1;
@@ -74,7 +94,7 @@ const updateInventory = async (inventoryUpdates) => {
 }
 
 module.exports = {
-    removeFromInventoryTransaction: removeFromOrAddToInventoryTransaction,
+    removeFromOrAddToInventoryTransaction,
     removeFromInventory,
     updateInventory,
     addToInventory

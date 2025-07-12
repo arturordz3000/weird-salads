@@ -36,15 +36,12 @@ const sellTransaction = async (connection, menuItemsIds) => {
         const menuItem = await getMenuItem(menuId);
         menuItems.push(menuItem);
 
-        // TODO: implement
         const recipeIngredients = await recipeService.getRecipeIngredientsTransaction(connection, menuItem.recipe_id);
         
-        // TODO: implement
-        await inventoryService.removeFromInventoryTransaction(connection, recipeIngredients);
+        await inventoryService.removeFromOrAddToInventoryTransaction(connection, recipeIngredients, 'remove');
     }
 
-    // TODO: implement
-    await salesService.addSaleTransaction(connection, menuItems);
+    await salesService.addSaleTransaction(connection, menuItems.map(item => item.menu_id));
 }
 
 const sell = async (menuItemsIds) => {
