@@ -1,4 +1,5 @@
 const constants = require('../constants');
+const inventoryService = require('../services/inventory-service');
 
 const { connectionPool } = constants;
 
@@ -13,6 +14,15 @@ const getDelivery = async (deliveryId) => {
     return rows;
 }
 
+const receiveDelivery = async (deliveryId) => {
+    const delivery = await getDelivery(deliveryId);
+
+    // The delivery is pretty much a list of ingredients and their quantities,
+    // which is equivalent to inventory updates.
+    await inventoryService.addToInventory(delivery);
+}
+
 module.exports = {
-    getDelivery
+    getDelivery,
+    receiveDelivery
 }
