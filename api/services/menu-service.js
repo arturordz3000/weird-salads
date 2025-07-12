@@ -10,10 +10,27 @@ const { connectionPool } = constants;
 
 const listMenu = async () => {
     const [rows] = await connectionPool.query(`
-        SELECT DISTINCT M.menu_id, R.name, M.price FROM menus as M 
-        INNER JOIN recipes as R ON R.recipe_id = M.recipe_id
-        WHERE M.location_id = ?`, 
-        [constants.locationId]);
+        SELECT 
+        M.menu_id,
+        R.name AS recipe_name,
+        M.price,
+        CASE
+            WHEN MIN(CASE 
+                    WHEN I.quantity >= R.quantity THEN 1 
+                    ELSE 0 
+                    END) = 1
+            THEN TRUE
+            ELSE FALSE
+        END AS is_available
+        FROM menus AS M
+        INNER JOIN recipes AS R ON R.recipe_id = M.recipe_id
+        LEFT JOIN inventory AS I 
+        ON I.ingredient_id = R.ingredient_id AND I.location_id = M.location_id
+        WHERE M.location_id = ?
+        GROUP BY M.menu_id, R.name, M.price
+        ORDER BY M.menu_id
+    `, 
+    [constants.locationId]);
     
     return rows;
 }
