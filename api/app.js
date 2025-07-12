@@ -2,6 +2,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var auditLog = require('./middlewares/audit-log-middleware');
 
 var staff = require('./routes/staff');
 var menu = require('./routes/menu');
@@ -14,7 +15,8 @@ var app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser())
+app.use(cookieParser());
+app.use(auditLog);
 
 app.use('/api/v1/staff', staff);
 app.use('/api/v1/menu', menu);

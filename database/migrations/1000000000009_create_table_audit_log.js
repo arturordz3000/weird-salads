@@ -2,7 +2,7 @@ module.exports = {
     "up": `CREATE TABLE IF NOT EXISTS audit_log (
         log_id INT AUTO_INCREMENT PRIMARY KEY,
         endpoint_path VARCHAR(1000) NOT NULL,
-        body TEXT NOT NULL,
+        body TEXT,
         staff_id INT NOT NULL,
         location_id INT NOT NULL,
         log_date DATETIME NOT NULL,
