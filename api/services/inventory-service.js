@@ -99,9 +99,21 @@ const updateInventory = async (inventoryUpdates) => {
     });
 }
 
+const getTotalInventoryValue = async () => {
+    const [rows] = await connectionPool.query(`
+        SELECT SUM(inv.quantity * ing.cost) AS total_inventory_value
+        FROM inventory AS inv
+        INNER JOIN ingredients AS ing ON ing.ingredient_id = inv.ingredient_id
+        WHERE inv.location_id = ?
+    `, [constants.locationId]);
+
+    return rows[0];
+}
+
 module.exports = {
     removeFromOrAddToInventoryTransaction,
     removeFromInventory,
     updateInventory,
-    addToInventory
+    addToInventory,
+    getTotalInventoryValue
 }

@@ -38,4 +38,11 @@ router.post('/add', async (req, res) => {
   });
 });
 
+router.get('/total_value', async (req, res) => {
+  await safeExecute(req, res, async () => {
+    const result = await inventoryService.getTotalInventoryValue();
+    res.json(result);
+  });
+});
+
 module.exports = router;
