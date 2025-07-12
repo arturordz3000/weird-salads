@@ -1,6 +1,5 @@
 
 const constants = require('../constants');
-const InventoryValidationError = require('../errors/inventory-validation-error');
 const UserError = require('../errors/user-error');
 const inventoryService = require('../services/inventory-service');
 const recipeService = require('../services/recipe-service');

@@ -14,126 +14,105 @@ const deleteCommands = [
     'DELETE FROM menus;',
     'DELETE FROM sales;',
     'DELETE FROM sale_detail;',
-    'DELETE FROM inventory_log;',
+    'DELETE FROM audit_log;',
     'DELETE FROM delivery;'
 ].reverse();
 
-const main = async () => {
-  console.log('Deleting data...');
+const insertFromCSV = (filePath, insertFn) => {
+  return new Promise((resolve, reject) => {
+    const insertPromises = [];
 
-  for (const command of deleteCommands) {
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on('data', (row) => {
+        insertPromises.push(
+          new Promise((res, rej) => {
+            insertFn(row, (err) => {
+              if (err) {
+                console.error(err);
+                rej(err);
+              } else {
+                res();
+              }
+            });
+          })
+        );
+      })
+      .on('error', (err) => {
+        reject(`Error reading ${filePath}: ` + err);
+      })
+      .on('end', async () => {
+        try {
+          await Promise.all(insertPromises);
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      });
+  });
+};
+
+const main = async () => {
+  try {
+    console.log('Deleting data...');
+    for (const command of deleteCommands) {
       await new Promise((resolve, reject) => {
         connection.query(command, (err) => {
-            if (err) {
-                reject('Error deleting table: ' + err);
-            } else {
-                resolve();
-            }
-        })
+          if (err) {
+            reject('Error deleting table: ' + err);
+          } else {
+            resolve();
+          }
+        });
       });
+    }
+
+    console.log('Re-inserting data...');
+
+    await insertFromCSV('./data/locations.csv', (row, cb) => {
+      const { location_id, name } = row;
+      const sql = 'INSERT INTO locations (location_id, name) VALUES (?, ?)';
+      connection.query(sql, [location_id, name], cb);
+    });
+
+    await insertFromCSV('./data/staff.csv', (row, cb) => {
+      const { staff_id, name, location_id } = row;
+      const sql = 'INSERT INTO staff (staff_id, name, location_id) VALUES (?, ?, ?)';
+      connection.query(sql, [staff_id, name, location_id], cb);
+    });
+
+    await insertFromCSV('./data/ingredients.csv', (row, cb) => {
+      const { ingredient_id, name, unit, cost } = row;
+      const sql = 'INSERT INTO ingredients (ingredient_id, name, unit, cost) VALUES (?, ?, ?, ?)';
+      connection.query(sql, [ingredient_id, name, unit, cost], cb);
+    });
+
+    await insertFromCSV('./data/recipes.csv', (row, cb) => {
+      const { recipe_id, name, quantity, ingredient_id } = row;
+      const sql = 'INSERT INTO recipes (recipe_id, name, quantity, ingredient_id) VALUES (?, ?, ?, ?)';
+      connection.query(sql, [recipe_id, name, quantity, ingredient_id], cb);
+    });
+
+    await insertFromCSV('./data/menus.csv', (row, cb) => {
+      const { recipe_id, location_id, price } = row;
+      const sql = 'INSERT INTO menus (recipe_id, location_id, price) VALUES (?, ?, ?)';
+      connection.query(sql, [recipe_id, location_id, price], cb);
+    });
+
+    await insertFromCSV('./data/deliveries.csv', (row, cb) => {
+      const { delivery_id, ingredient_id, quantity } = row;
+      const sql = 'INSERT INTO delivery (delivery_id, ingredient_id, quantity) VALUES (?, ?, ?)';
+      connection.query(sql, [delivery_id, ingredient_id, quantity], cb);
+    });
+
+    console.log('Finished re-inserting table data!');
+  } catch (err) {
+    console.error('Error during DB reset:', err);
+  } finally {
+    connection.end(() => {
+      console.log('Connection closed.');
+    });
   }
+};
 
-  console.log('Re-inserting data...');
-
-  await new Promise((resolve, reject) => {
-    fs.createReadStream('./data/locations.csv')
-      .pipe(csv())
-      .on('data', (row) => {
-        const { location_id, name } = row;
-        const sql = 'INSERT INTO locations (location_id, name) VALUES (?, ?)';
-        connection.query(sql, [location_id, name], (err) => {
-          if (err) console.error(err);
-        });
-      })
-      .on('error', (reason) => {
-        reject('Error reading locations file: ' + reason);
-      })
-      .on('end', () => {
-        resolve();
-      });
-  });
-
-  await new Promise((resolve, reject) => {
-    fs.createReadStream('./data/staff.csv')
-      .pipe(csv())
-      .on('data', (row) => {
-        const { staff_id, name, location_id } = row;
-        const sql = 'INSERT INTO staff (staff_id, name, location_id) VALUES (?, ?, ?)';
-        connection.query(sql, [staff_id, name, location_id], (err) => {
-          if (err) console.error(err);
-        });
-      })
-      .on('error', (reason) => {
-        reject('Error reading staff file: ' + reason);
-      })
-      .on('end', () => {
-        resolve();
-      });
-  });
-
-  await new Promise((resolve, reject) => {
-    fs.createReadStream('./data/ingredients.csv')
-      .pipe(csv())
-      .on('data', (row) => {
-        const { ingredient_id, name, unit, cost } = row;
-        const sql = 'INSERT INTO ingredients (ingredient_id, name, unit, cost) VALUES (?, ?, ?, ?)';
-        connection.query(sql, [ingredient_id, name, unit, cost], (err) => {
-          if (err) console.error(err);
-        });
-      })
-      .on('error', (reason) => {
-        reject('Error reading ingredients file: ' + reason);
-      })
-      .on('end', () => {
-        resolve();
-      });
-  });
-
-  await new Promise((resolve, reject) => {
-    fs.createReadStream('./data/recipes.csv')
-      .pipe(csv())
-      .on('data', (row) => {
-        const { recipe_id, name, quantity, ingredient_id } = row;
-        const sql = 'INSERT INTO recipes (recipe_id, name, quantity, ingredient_id) VALUES (?, ?, ?, ?)';
-        connection.query(sql, [recipe_id, name, quantity, ingredient_id], (err) => {
-          if (err) console.error(err);
-        });
-      })
-      .on('error', (reason) => {
-        reject('Error reading recipes file: ' + reason);
-      })
-      .on('end', () => {
-        resolve();
-      });
-  });
-
-  await new Promise((resolve, reject) => {
-    fs.createReadStream('./data/menus.csv')
-      .pipe(csv())
-      .on('data', (row) => {
-        const { recipe_id, location_id, price } = row;
-        const sql = 'INSERT INTO menus (recipe_id, location_id, price) VALUES (?, ?, ?)';
-        connection.query(sql, [recipe_id, location_id, price], (err) => {
-          if (err) console.error(err);
-        });
-      })
-      .on('error', (reason) => {
-        reject('Error reading menus file: ' + reason);
-      })
-      .on('end', () => {
-        resolve();
-      });
-  });
-
-  console.log('Finished re-inserting table data!');
-  connection.end();
-  console.log('Connection closed.');
-}
-
-try {
-  main();
-} catch (err) {
-  console.log('Error while resetting table data: ' + reason);
-  connection.end();
-  console.log('Connection closed.');
-}
+main();

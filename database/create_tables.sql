@@ -4,20 +4,20 @@ CREATE TABLE IF NOT EXISTS locations (
     )
 
 CREATE TABLE IF NOT EXISTS staff (
-        staff_id INT AUTO_INCREMENT PRIMARY KEY,
+        staff_id INT NOT NULL,
         name VARCHAR(200) NOT NULL,
         location_id INT NOT NULL,
+        PRIMARY KEY (staff_id, location_id),
         CONSTRAINT fk_location
             FOREIGN KEY (location_id)
             REFERENCES locations(location_id)
-            ON DELETE CASCADE
     )
 
 CREATE TABLE IF NOT EXISTS ingredients (
         ingredient_id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         unit VARCHAR(50) NOT NULL,
-        cost DECIMAL NOT NULL
+        cost DECIMAL(10, 2) NOT NULL
     )
 
 CREATE TABLE IF NOT EXISTS inventory (
@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS inventory (
         CONSTRAINT fk_inventory_location
             FOREIGN KEY (location_id)
             REFERENCES locations(location_id)
-            ON DELETE CASCADE
     )
 
 CREATE TABLE IF NOT EXISTS recipes (
@@ -56,7 +55,6 @@ CREATE TABLE IF NOT EXISTS menus (
         CONSTRAINT fk_menu_location
             FOREIGN KEY (location_id)
             REFERENCES locations(location_id)
-            ON DELETE CASCADE
     )
 
 CREATE TABLE IF NOT EXISTS sales (
@@ -74,27 +72,19 @@ CREATE TABLE IF NOT EXISTS sale_detail (
             REFERENCES menus(menu_id)
     )
 
-CREATE TABLE IF NOT EXISTS inventory_log (
+CREATE TABLE IF NOT EXISTS audit_log (
         log_id INT AUTO_INCREMENT PRIMARY KEY,
-        ingredient_id INT NOT NULL,
-        location_id INT NOT NULL,
+        endpoint_path VARCHAR(1000) NOT NULL,
+        body TEXT NOT NULL,
         staff_id INT NOT NULL,
-        sale_id INT,
-        action VARCHAR(10) NOT NULL,
-        quantity DECIMAL(10, 2) NOT NULL,
+        location_id INT NOT NULL,
         log_date DATETIME NOT NULL,
-        CONSTRAINT fk_inventory_log_ingredient
-            FOREIGN KEY (ingredient_id)
-            REFERENCES ingredients(ingredient_id),
-        CONSTRAINT fk_inventory_log_location
+        CONSTRAINT fk_audit_log_location
             FOREIGN KEY (location_id)
             REFERENCES locations(location_id),
-        CONSTRAINT fk_inventory_log_staff
+        CONSTRAINT fk_audit_log_staff
             FOREIGN KEY (staff_id)
             REFERENCES staff(staff_id),
-        CONSTRAINT fk_inventory_log_sale
-            FOREIGN KEY (sale_id)
-            REFERENCES sales(sale_id)
     )
 
 CREATE TABLE IF NOT EXISTS delivery (
