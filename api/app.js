@@ -3,6 +3,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var auditLogger = require('./middlewares/audit-log-middleware');
+const cors = require('cors');
 
 var staff = require('./routes/staff');
 var menu = require('./routes/menu');
@@ -17,6 +18,10 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(cors({
+    origin: 'http://localhost:3001',
+    credentials: true
+  }));
 app.use(auditLogger);
 
 app.use('/api/v1/staff', staff);
