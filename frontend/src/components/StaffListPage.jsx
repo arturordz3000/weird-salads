@@ -8,8 +8,9 @@ export const StaffListPage = () => {
     const [cookies, setCookies] = useCookies();
     const navigate = useNavigate();
 
-    const onLogin = useCallback(({ staff_id}) => {
+    const onLogin = useCallback(({ staff_id, name }) => {
         setCookies('staffId', staff_id);
+        setCookies('staffName', name);
     }, [setCookies]);
 
     useEffect(() => {

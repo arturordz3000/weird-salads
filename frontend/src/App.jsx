@@ -1,10 +1,7 @@
-import { useState } from 'react'
 import './App.css'
 import { StaffListPage } from './components/StaffListPage'
-import AppBar from '@mui/material/AppBar';
+import { MenuPage } from './components/MenuPage'
 import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
 import { useCookies } from 'react-cookie';
 import {
   BrowserRouter as Router,
@@ -12,24 +9,21 @@ import {
   Route
 } from 'react-router-dom';
 import ProtectedRoute from './components/ProectedRoute';
+import ResponsiveAppBar from './components/ResponsiveAppNav';
+import Home from './components/Home'
 
 function App() {
   const [cookies] = useCookies();
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Weird Salads
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <ResponsiveAppBar />
       <Router>
       <Routes>
           <Route path="/" element={<StaffListPage />} />
           <Route path="/login" element={<StaffListPage />} />
-          <Route path="/home" element={<ProtectedRoute><>Home</></ProtectedRoute>} />
+          <Route path="/menu"  element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="*" element={<>Not found</>} />
         </Routes>
       </Router>
